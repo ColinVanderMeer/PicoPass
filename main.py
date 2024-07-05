@@ -11,6 +11,12 @@ async def startAP(ssid, password):
     ap = network.WLAN(network.AP_IF)
     ap.config(essid=ssid, password=password)
     ap.active(True)
+    
+    while not ap.active():
+        await asyncio.sleep(1)  # Sleep asynchronously
+
+    print('AP Mode Is Active, You can Now Connect')
+    print('IP Address To Connect to:: ' + ap.ifconfig()[0])
 
 async def scanNetwork():
     # Connect to WLAN
