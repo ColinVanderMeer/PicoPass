@@ -27,7 +27,7 @@ async def handle_client(conn, addr):
         
         if request:
             print('Content = %s' % str(request))
-            response = "TestResponse"
+            response = "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\nTestResponse"
             conn.send(response.encode())
     except Exception as e:
         print(f"Error handling client: {e}")
