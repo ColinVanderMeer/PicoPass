@@ -23,8 +23,10 @@ def scanNetwork(spryg):
     i = 0
     networks = wlan.scan()
     for tup in networks:
-        spryg.screen.text(tup[0].decode("utf-8"), 0, i, 0xFFFF)
-        networkList.append(tup[0].decode("utf-8"))
+        ssidName = tup[0].decode("utf-8")
+        if ssidName != "":
+            spryg.screen.text(ssidName, 0, i, 0xFFFF)
+            networkList.append(ssidName)
         i += 10
     return i
 
@@ -32,17 +34,22 @@ def search_picopass(items_list):
     return [item for item in items_list if "PicoPass" in item]
 
 def getData(ssid):
+    attempts = 0
     #Connect to WLAN
     wlan.connect(ssid, "PicoPassword")
     while wlan.isconnected() == False:
         print('Waiting for connection...')
         time.sleep(1)
+        attempts += 1
+        if attempts == 10:
+            return "ERROR"
     ip = wlan.ifconfig()[0]
     print(f'Connected on {ip}')
 
     response = urequests.get("http://192.168.4.1")
     
     print(response.text)
+    wlan.disconnect()
     
     return response.text
 
