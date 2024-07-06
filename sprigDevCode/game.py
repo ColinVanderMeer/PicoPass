@@ -36,10 +36,21 @@ def getData(ssid):
     wlan.connect(ssid, "PicoPassword")
     while wlan.isconnected() == False:
         print('Waiting for connection...')
-        sleep(1)
+        time.sleep(1)
     ip = wlan.ifconfig()[0]
     print(f'Connected on {ip}')
-    response = urequests.get("192.168.4.1")
+    print("ete")
+    ai = socket.getaddrinfo("192.168.4.1", 80)
+    addr = ai[0][-1]
+    
+    s = socket.socket()
+    s.connect(addr)
+    s.send("ThisIsMyTest")
+    response = str(s.recv(512))
+    print("etse")
+    print(response)
+    print("etsse")
+    return response
 
 
 def run(spryg):
@@ -50,9 +61,12 @@ def run(spryg):
         textBuf = scanNetwork(spryg)
         spryg.screen.text(str(refreshTimes), 0, textBuf, 0x00FF)
         
-        if search_picopass(networkList):
-            print(networkList)
+        picoPassList = search_picopass(networkList)
+        
+        if picoPassList:
             spryg.screen.text("PicoPass Found", 0, textBuf+10, 0xFF00)
+            spryg.screen.text(getData(picoPassList[0]), 0, textBuf+20, 0x0FF0)
+            
         
         spryg.flip()
         
