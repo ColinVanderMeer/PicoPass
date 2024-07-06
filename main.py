@@ -5,6 +5,35 @@ from picozero import pico_temp_sensor, pico_led
 import machine
 import asyncio
 
+async def handle_client(conn, addr):
+    print('Got a connection from %s' % str(addr))
+    conn.setblocking(False)
+    request = b""
+    try:
+        while True:
+            try:
+                chunk = conn.recv(1024)
+                if chunk:
+                    request += chunk
+                    if b"\r\n\r\n" in request:
+                        break
+                else:
+                    # No data received, connection might be closed
+                    break
+            except OSError as e:
+                if e.args[0] != 11:  # EAGAIN
+                    raise
+                await asyncio.sleep(0.1)
+        
+        if request:
+            print('Content = %s' % str(request))
+            response = "TestResponse"
+            conn.send(response.encode())
+    except Exception as e:
+        print(f"Error handling client: {e}")
+    finally:
+        conn.close()
+
 async def startAP():
     while not ap.active():
         await asyncio.sleep(1)  # Sleep asynchronously
@@ -20,21 +49,13 @@ async def startAP():
     while True:
         try:
             conn, addr = s.accept()
-            print('Got a connection from %s' % str(addr))
-            request = conn.recv(1024)
-            print('Content = %s' % str(request))
-            response = "TestResponse"
-            conn.send(response)
-            conn.close()
+            asyncio.create_task(handle_client(conn, addr))
         except OSError as e:
-            if e.args[0] == 11:  # EAGAIN error, meaning no data available
-                pass
-            else:
+            if e.args[0] != 11:  # 11 is EAGAIN, meaning no data available
                 print("Unexpected error:", e)
         await asyncio.sleep(0.1)
 
 async def scanNetwork():
-    print("Scanning network")
     networks = wlan.scan()
     print(networks)
     for listItem in networks:
@@ -43,13 +64,8 @@ async def scanNetwork():
 async def main():
     startAP_task = asyncio.create_task(startAP())
     
-    print("we got here")
-    
     while True:
-        print("we here tooo :3")
-        print("test")
         await scanNetwork()
-        print("here?")
         await asyncio.sleep(10)  # Sleep for 5 seconds before scanning again
 
 wlan = network.WLAN(network.STA_IF)
