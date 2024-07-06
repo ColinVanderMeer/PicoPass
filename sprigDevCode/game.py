@@ -39,18 +39,12 @@ def getData(ssid):
         time.sleep(1)
     ip = wlan.ifconfig()[0]
     print(f'Connected on {ip}')
-    print("ete")
-    ai = socket.getaddrinfo("192.168.4.1", 80)
-    addr = ai[0][-1]
+
+    response = urequests.get("http://192.168.4.1")
     
-    s = socket.socket()
-    s.connect(addr)
-    s.send("ThisIsMyTest")
-    response = str(s.recv(512))
-    print("etse")
-    print(response)
-    print("etsse")
-    return response
+    print(response.text)
+    
+    return response.text
 
 
 def run(spryg):
