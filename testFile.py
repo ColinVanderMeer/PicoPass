@@ -45,5 +45,5 @@ def ap_mode(ssid, password):
       conn.send(response)
       conn.close()
 
-ap_mode('NAME',
-        'PASSWORD')
+ap_mode('PicoPass849',
+        'PicoPassword')

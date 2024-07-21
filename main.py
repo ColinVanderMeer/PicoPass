@@ -81,21 +81,36 @@ async def getData(ssid):
         attempts += 1
         if attempts == 10:
             return "ERROR: Connection timeout"
+
     ip = wlan.ifconfig()[0]
     print(f'Connected on {ip}')
-    
+
     try:
-        response = urequests.get("http://192.168.4.1")
+        # Use socket for async operation
+        _, _, host, path = "http://192.168.4.1/".split('/', 3)
+        addr = socket.getaddrinfo(host, 80)[0][-1]
+        s = socket.socket()
+        s.connect(addr)
+        s.send(bytes('GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n' % (path, host), 'utf8'))
+        
+        response = ''
+        while True:
+            data = s.recv(100)
+            if data:
+                response += str(data, 'utf8')
+            else:
+                break
+        s.close()
+        
         print("Response received")
-        print(response.text)
-        response.close()
-        return response.text
+        print(response)
     except Exception as e:
         print(f"Error during request: {e}")
-        return f"ERROR: {str(e)}"
+        response = f"ERROR: {str(e)}"
     finally:
-        pico_led.off()
         wlan.disconnect()
+    
+    return response
 
 async def main():
     startAP_task = asyncio.create_task(startAP())
