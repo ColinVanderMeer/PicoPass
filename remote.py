@@ -83,8 +83,8 @@ async def remote_task():
             button_characteristic.notify(connection,b"s")
         elif button_d.is_pressed:
             print('Button D pressed')
-            button_characteristic.write(b"d")
-            button_characteristic.notify(connection,b"d")
+            button_characteristic.write(b"My name is Colin and I'm currently writing PicoPass")
+            button_characteristic.notify(connection,b"My name is Colin and I'm currently writing PicoPass")
         else:
             button_characteristic.write(b"!")
         await asyncio.sleep_ms(10)
