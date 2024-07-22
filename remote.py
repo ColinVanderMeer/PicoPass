@@ -9,7 +9,7 @@ import bluetooth
 import machine
 import uasyncio as asyncio
 from micropython import const
-from pimoroni import Button
+from picozero import Button
 
 def uid():
     """ Return the unique id of the device as a string """
@@ -22,10 +22,10 @@ SERIAL_NUMBER_ID = const(0x2A25)
 HARDWARE_REVISION_ID = const(0x2A26)
 BLE_VERSION_ID = const(0x2A28)
 
-button_a = Button(12)
-button_b = Button(13)
-button_x = Button(14)
-button_y = Button(15)
+button_w = Button(5)
+button_a = Button(6)
+button_s = Button(7)
+button_d = Button(8)
 
 led = machine.Pin("LED", machine.Pin.OUT)
 
@@ -69,22 +69,22 @@ async def remote_task():
             print('not connected')
             await asyncio.sleep_ms(1000)
             continue
-        if button_a.read():
-            print(f'Button A pressed, connection is: {connection}')
-            button_characteristic.write(b"a")   
+        if button_w.is_pressed:
+            print(f'Button W pressed, connection is: {connection}')
+            button_characteristic.write(b"w")   
+            button_characteristic.notify(connection,b"w")
+        elif button_a.is_pressed:
+            print('Button A pressed')
+            button_characteristic.write(b"a")
             button_characteristic.notify(connection,b"a")
-        elif button_b.read():
-            print('Button B pressed')
-            button_characteristic.write(b"b")
-            button_characteristic.notify(connection,b"b")
-        elif button_x.read():
-            print('Button X pressed')
-            button_characteristic.write(b"x")
-            button_characteristic.notify(connection,b"x")
-        elif button_y.read():
-            print('Button Y pressed')
-            button_characteristic.write(b"y")
-            button_characteristic.notify(connection,b"x")
+        elif button_s.is_pressed:
+            print('Button S pressed')
+            button_characteristic.write(b"s")
+            button_characteristic.notify(connection,b"s")
+        elif button_d.is_pressed:
+            print('Button D pressed')
+            button_characteristic.write(b"d")
+            button_characteristic.notify(connection,b"d")
         else:
             button_characteristic.write(b"!")
         await asyncio.sleep_ms(10)
