@@ -86,14 +86,14 @@ async def peripheral_task():
                         command = await control_characteristic.read()
 #                         print(f"Command: {temp_deg_c}")
 
+                        if command == b'w':
+                            print("W button pressed")
                         if command == b'a':
-                            print("a button pressed")
-                        if command == b'b':
-                            print("b button pressed")
-                        if command == b'x':
-                            print("x button pressed")
-                        if command == b'y':
-                            print("y button pressed")
+                            print("A button pressed")
+                        if command == b's':
+                            print("S button pressed")
+                        if command == b'd':
+                            print("D button pressed")
                     except TypeError:
                         print(f'something went wrong; remote disconnected?')
                         connected = False
