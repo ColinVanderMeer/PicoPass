@@ -83,11 +83,17 @@ async def remote_task():
             button_characteristic.notify(connection,b"s")
         elif button_d.is_pressed:
             print('Button D pressed')
-            button_characteristic.write(b"My name is Colin and I'm currently writing PicoPass")
-            button_characteristic.notify(connection,b"My name is Colin and I'm currently writing PicoPass")
+            button_characteristic.write(b"1My name is Colin and")
+            button_characteristic.notify(connection,b"1My name is Colin and")
+            await asyncio.sleep_ms(50)
+            button_characteristic.write(b"2I'm currently writing")
+            button_characteristic.notify(connection,b"'m currently writing")
+            await asyncio.sleep_ms(50)
+            button_characteristic.write(b"3 PicoPass")
+            button_characteristic.notify(connection,b"3 PicoPass")
         else:
             button_characteristic.write(b"!")
-        await asyncio.sleep_ms(10)
+        await asyncio.sleep_ms(50)
             
 # Serially wait for connections. Don't advertise while a central is
 # connected.    

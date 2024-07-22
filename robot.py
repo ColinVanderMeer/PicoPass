@@ -12,35 +12,41 @@ import uasyncio as asyncio
 # Bluetooth UUIDS can be found online at https://www.bluetooth.com/specifications/gatt/services/
 
 _REMOTE_UUID = bluetooth.UUID(0x1848)
-_ENV_SENSE_UUID = bluetooth.UUID(0x1800) 
+_ENV_SENSE_UUID = bluetooth.UUID(0x1800)
 _REMOTE_CHARACTERISTICS_UUID = bluetooth.UUID(0x2A6E)
 
 led = machine.Pin("LED", machine.Pin.OUT)
 connected = False
 alive = False
 
+message = []
+
+
 async def find_remote():
     # Scan for 5 seconds, in active mode, with very low interval/window (to
     # maximise detection rate).
-    async with aioble.scan(5000, interval_us=30000, window_us=30000, active=True) as scanner:
+    async with aioble.scan(
+        5000, interval_us=30000, window_us=30000, active=True
+    ) as scanner:
         async for result in scanner:
 
             # See if it matches our name
             if result.name() == "KevsRobots":
                 print("Found KevsRobots")
                 for item in result.services():
-                    print (item)
+                    print(item)
                 if _ENV_SENSE_UUID in result.services():
                     print("Found Robot Remote Service")
                     return result.device
-            
+
     return None
 
+
 async def blink_task():
-    """ Blink the LED on and off every second """
-    
+    """Blink the LED on and off every second"""
+
     toggle = True
-    
+
     while True and alive:
         led.value(toggle)
         toggle = not toggle
@@ -51,8 +57,9 @@ async def blink_task():
             blink = 250
         await asyncio.sleep_ms(blink)
 
+
 async def peripheral_task():
-    print('starting peripheral task')
+    print("starting peripheral task")
     global connected
     connected = False
     device = await find_remote()
@@ -62,11 +69,11 @@ async def peripheral_task():
     try:
         print("Connecting to", device)
         connection = await device.connect()
-        
+
     except asyncio.TimeoutError:
         print("Timeout during connection")
         return
-      
+
     async with connection:
         print("Connected")
         connected = True
@@ -75,7 +82,9 @@ async def peripheral_task():
             try:
                 robot_service = await connection.service(_REMOTE_UUID)
                 print(robot_service)
-                control_characteristic = await robot_service.characteristic(_REMOTE_CHARACTERISTICS_UUID)
+                control_characteristic = await robot_service.characteristic(
+                    _REMOTE_CHARACTERISTICS_UUID
+                )
                 print(control_characteristic)
             except asyncio.TimeoutError:
                 print("Timeout discovering services/characteristics")
@@ -84,36 +93,42 @@ async def peripheral_task():
                 if control_characteristic != None:
                     try:
                         command = await control_characteristic.read()
-#                         print(f"Command: {temp_deg_c}")
-                          
+                        #                         print(f"Command: {temp_deg_c}")
+
                         print(command)
-                          
-#                         if command == b'w':
-#                             print("W button pressed")
-#                         if command == b'a':
-#                             print("A button pressed")
-#                         if command == b's':
-#                             print("S button pressed")
-#                         if command == b'd':
-#                             print("D button pressed")
+
+                        if str(command)[0].isnumeric() and command not in message:
+                            message.append(command)
+                        print(message)
+                        #                         if command == b'a':
+                        #                             print("A button pressed")
+                        #                         if command == b's':
+                        #                             print("S button pressed")
+                        if command == b"a":
+                            message.sort()
+                            messageString = ""
+                            for part in message:
+                                messageString =+ part
+                            print(messageString)
                     except TypeError:
-                        print(f'something went wrong; remote disconnected?')
+                        print(f"something went wrong; remote disconnected?")
                         connected = False
                         alive = False
                         return
                     except asyncio.TimeoutError:
-                        print(f'something went wrong; timeout error?')
+                        print(f"something went wrong; timeout error?")
                         connected = False
                         alive = False
                         return
                     except asyncio.GattError:
-                        print(f'something went wrong; Gatt error - did the remote die?')
+                        print(f"something went wrong; Gatt error - did the remote die?")
                         connected = False
                         alive = False
                         return
                 else:
-                    print('no characteristic')
-                await asyncio.sleep_ms(10)
+                    print("no characteristic")
+                await asyncio.sleep_ms(20)
+
 
 async def main():
     tasks = []
@@ -122,6 +137,7 @@ async def main():
         asyncio.create_task(peripheral_task()),
     ]
     await asyncio.gather(*tasks)
-    
+
+
 while True:
     asyncio.run(main())
